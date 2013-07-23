@@ -1,0 +1,84 @@
+<apex:page controller="QuakeControllerExtension" showheader="true"
+        sidebar="false">
+  <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js" type="text/javascript"></script>
+<script>
+
+function initialize() {
+      
+      var Lat = ${params.get("latitude")};
+      var Lng = ${params.get("longitude")};
+      
+      var myLatlng = new google.maps.LatLng(Lat,Lng);
+      var mapOptions = {
+        zoom: 6,
+        center: myLatlng,
+        mapTypeId: google.maps.MapTypeId.ROADMAP
+      }
+      var map = new google.maps.Map(document.getElementById('map-canvas'), mapOptions);
+          addMarkers(map);
+
+    }
+
+    function addMarkers(map)
+    {
+         #{list quakelist, as:'quake'}
+         var infowindow = new google.maps.InfoWindow({
+              content: 'Magnitude ${quake.magnitude} at ${quake.datetime}, at a depth of ${quake.depth} km'
+          });
+
+            var marker = new google.maps.Marker({
+              position: new google.maps.LatLng(${quake.lat},${quake.lng}),
+              map: map,
+              title: 'Hello World!'
+          });
+            google.maps.event.addListener(marker, 'click', function() {
+                infowindow.open(map,marker);
+                
+              });
+            #{/list}
+    }
+    google.maps.event.addDomListener(window, 'load', initialize);
+
+
+</script>
+<apex:form >
+                <apex:sectionheader title="QuakeForce" id="sectionheader" />
+
+                <apex:pageBlock title="Search" id="search" rendered="true">
+                 <script type="text/javascript">
+                                            function doSearch()
+                                            {
+                                                var searchinput = $('#SearchTD').children("input").val();
+                                                searchServer(searchinput);
+                                                //alert("ping");
+                                            }
+                                            </script>
+                  
+                        <apex:actionFunction name="searchServer" action="{!runSearch}"
+                                rerender="search, map">
+                                <apex:param name="location" value="" />
+                        </apex:actionFunction>
+                        <table cellpadding="2" cellspacing="2">
+                        <tr>
+                        <td id="SearchTD">
+                    <b>Location</b>&nbsp;
+                    <apex:inputText id="Location" label="Location"/>
+                    </td>
+                    <td>
+                    <input type="button" class="btn" id="btnSearch" value="Search" onclick="doSearch();" />
+                    </td>
+                    </tr>
+                    </table>
+                    <br/><br/>
+                    
+                </apex:pageBlock>
+                
+                <apex:pageBlock title="Map" id="map" rendered="true">
+                <apex:repeat value="{!XMLData}" var="string">
+                <apex:outputText value="{!string}" /><br/>
+                </apex:repeat>
+                    <div id="map-canvas"></div>
+                </apex:pageBlock>
+    </apex:form>             
+</apex:page>
