@@ -3,6 +3,7 @@ public with sharing class QuakeControllerExtension {
     public String location {get; set;}
     public String debugString {get; set;}
     public List<SearchResult.Geonames> LocationResults {get; set;}
+    public List<QuakeResults.Earthquakes> QuakeList {get;set;}
     
     public PageReference runSearch() {
     
@@ -36,5 +37,43 @@ public with sharing class QuakeControllerExtension {
 }       
         return null;
     }
+    
+	public PageReference getQuakes()
+    {
+    	//System.debug('Longitude passed = ' + Apexpages.currentPage().getParameters().get('Lng'));
+    	
+    	double longitude = double.valueOf(Apexpages.currentPage().getParameters().get('lng'));
+    	double latitude = double.valueOf(Apexpages.currentPage().getParameters().get('lat'));
+
+		double north = latitude+2;
+		double south = latitude-2;
+		double east = longitude+2;
+		double west = longitude-2;
 	
+	
+		String url =  'http://api.geonames.org/earthquakesJSON?north=' + north + '&south=' + south + '&east=' + east + '&west=' + west + '&username=robjcowell';
+	HttpRequest req = new HttpRequest();
+        req.setMethod('GET');
+        req.setEndPoint(url);
+        
+        Http http = new Http();
+  
+   try {
+ 
+        //Execute web service call here     
+        HTTPResponse res = http.send(req);  
+
+        //Helpful debug messages
+//        debugString = res.getBody();
+        QuakeResults qr = QuakeResults.parse(res.getBody());
+	
+
+		QuakeList = qr.earthquakes;
+   }
+	catch(System.CalloutException e) {
+        debugString = e.getMessage();
+}       
+
+        return null;
+    }
 }
